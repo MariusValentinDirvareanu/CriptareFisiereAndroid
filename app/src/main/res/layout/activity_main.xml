@@ -18,10 +18,11 @@
         app:layout_constraintVertical_bias="0.568" />
 
     <Button
-        android:id="@+id/BtnAuth"
+        android:id="@+id/btnAlegeFisier"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Autentificare"
+        android:text="Alege Fisier"
+        android:onClick="openFileDialog"
         app:layout_constraintBottom_toTopOf="@+id/txtAuth"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

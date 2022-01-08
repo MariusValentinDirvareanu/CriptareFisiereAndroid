@@ -9,32 +9,6 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
-interface CryptographyManager {
-
-    /**
-     * This method first gets or generates an instance of SecretKey and then initializes the Cipher
-     * with the key. The secret key uses [ENCRYPT_MODE][Cipher.ENCRYPT_MODE] is used.
-     */
-    fun getInitializedCipherForEncryption(keyName: String): Cipher
-
-    /**
-     * This method first gets or generates an instance of SecretKey and then initializes the Cipher
-     * with the key. The secret key uses [DECRYPT_MODE][Cipher.DECRYPT_MODE] is used.
-     */
-    fun getInitializedCipherForDecryption(keyName: String, initializationVector: ByteArray): Cipher
-
-    /**
-     * The Cipher created with [getInitializedCipherForEncryption] is used here
-     */
-    fun encryptData(plaintext: String, cipher: Cipher): EncryptedData
-
-    /**
-     * The Cipher created with [getInitializedCipherForDecryption] is used here
-     */
-    fun decryptData(ciphertext: ByteArray, cipher: Cipher): String
-
-}
-
 fun CryptographyManager(): CryptographyManager = CryptographyManagerImpl()
 
 data class EncryptedData(val ciphertext: ByteArray, val initializationVector: ByteArray)
@@ -49,8 +23,7 @@ private class CryptographyManagerImpl : CryptographyManager {
 
     override fun getInitializedCipherForEncryption(keyName: String): Cipher {
         val cipher = getCipher()
-        val secretKey = getOrCreateSecretKey(keyName)
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey)
+        cipher.init(Cipher.ENCRYPT_MODE, getOrCreateSecretKey(keyName))
         return cipher
     }
 
@@ -62,18 +35,15 @@ private class CryptographyManagerImpl : CryptographyManager {
     }
 
     override fun encryptData(plaintext: String, cipher: Cipher): EncryptedData {
-        val ciphertext = cipher.doFinal(plaintext.toByteArray(Charset.forName("UTF-8")))
-        return EncryptedData(ciphertext,cipher.iv)
+        return EncryptedData(cipher.doFinal(plaintext.toByteArray(Charset.forName("UTF-8"))),cipher.iv)
     }
 
     override fun decryptData(ciphertext: ByteArray, cipher: Cipher): String {
-        val plaintext = cipher.doFinal(ciphertext)
-        return String(plaintext, Charset.forName("UTF-8"))
+        return String(cipher.doFinal(ciphertext), Charset.forName("UTF-8"))
     }
 
     private fun getCipher(): Cipher {
-        val transformation = "$ENCRYPTION_ALGORITHM/$ENCRYPTION_BLOCK_MODE/$ENCRYPTION_PADDING"
-        return Cipher.getInstance(transformation)
+        return Cipher.getInstance("$ENCRYPTION_ALGORITHM/$ENCRYPTION_BLOCK_MODE/$ENCRYPTION_PADDING")
     }
 
     private fun getOrCreateSecretKey(keyName: String): SecretKey {
@@ -85,6 +55,8 @@ private class CryptographyManagerImpl : CryptographyManager {
         // if you reach here, then a new SecretKey must be generated for that keyName
         val paramsBuilder = KeyGenParameterSpec.Builder(keyName,
                 KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+
+
         paramsBuilder.apply {
             setBlockModes(ENCRYPTION_BLOCK_MODE)
             setEncryptionPaddings(ENCRYPTION_PADDING)
