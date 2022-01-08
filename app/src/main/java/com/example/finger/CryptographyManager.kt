@@ -11,7 +11,25 @@ import javax.crypto.spec.GCMParameterSpec
 
 fun CryptographyManager(): CryptographyManager = CryptographyManagerImpl()
 
-data class EncryptedData(val ciphertext: ByteArray, val initializationVector: ByteArray)
+data class EncryptedData(val ciphertext: ByteArray, val initializationVector: ByteArray) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as EncryptedData
+
+        if (!ciphertext.contentEquals(other.ciphertext)) return false
+        if (!initializationVector.contentEquals(other.initializationVector)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = ciphertext.contentHashCode()
+        result = 31 * result + initializationVector.contentHashCode()
+        return result
+    }
+}
 
 private class CryptographyManagerImpl : CryptographyManager {
 
@@ -27,19 +45,25 @@ private class CryptographyManagerImpl : CryptographyManager {
         return cipher
     }
 
-    override fun getInitializedCipherForDecryption(keyName: String, initializationVector: ByteArray): Cipher {
+    override fun getInitializedCipherForDecryption(
+        keyName: String,
+        initializationVector: ByteArray
+    ): Cipher {
         val cipher = getCipher()
         val secretKey = getOrCreateSecretKey(keyName)
         cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(128, initializationVector))
         return cipher
     }
 
-    override fun encryptData(plaintext: String, cipher: Cipher): EncryptedData {
-        return EncryptedData(cipher.doFinal(plaintext.toByteArray(Charset.forName("UTF-8"))),cipher.iv)
+    override fun encryptData(fileByteArray: ByteArray, cipher: Cipher): EncryptedData {
+        return EncryptedData(
+            cipher.doFinal(fileByteArray),
+            cipher.iv
+        )
     }
 
-    override fun decryptData(ciphertext: ByteArray, cipher: Cipher): String {
-        return String(cipher.doFinal(ciphertext), Charset.forName("UTF-8"))
+    override fun decryptData(ciphertext: ByteArray, cipher: Cipher): ByteArray {
+        return cipher.doFinal(ciphertext)
     }
 
     private fun getCipher(): Cipher {
@@ -53,8 +77,10 @@ private class CryptographyManagerImpl : CryptographyManager {
         keyStore.getKey(keyName, null)?.let { return it as SecretKey }
 
         // if you reach here, then a new SecretKey must be generated for that keyName
-        val paramsBuilder = KeyGenParameterSpec.Builder(keyName,
-                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+        val paramsBuilder = KeyGenParameterSpec.Builder(
+            keyName,
+            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+        )
 
 
         paramsBuilder.apply {
@@ -65,8 +91,10 @@ private class CryptographyManagerImpl : CryptographyManager {
         }
 
         val keyGenParams = paramsBuilder.build()
-        val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES,
-                ANDROID_KEYSTORE)
+        val keyGenerator = KeyGenerator.getInstance(
+            KeyProperties.KEY_ALGORITHM_AES,
+            ANDROID_KEYSTORE
+        )
         keyGenerator.init(keyGenParams)
         return keyGenerator.generateKey()
     }

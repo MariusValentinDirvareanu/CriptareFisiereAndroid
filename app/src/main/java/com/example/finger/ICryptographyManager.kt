@@ -19,11 +19,11 @@ interface CryptographyManager {
     /**
      * The Cipher created with [getInitializedCipherForEncryption] is used here
      */
-    fun encryptData(plaintext: String, cipher: Cipher): EncryptedData
+    fun encryptData(fileByteArray: ByteArray, cipher: Cipher): EncryptedData
 
     /**
      * The Cipher created with [getInitializedCipherForDecryption] is used here
      */
-    fun decryptData(ciphertext: ByteArray, cipher: Cipher): String
+    fun decryptData(ciphertext: ByteArray, cipher: Cipher): ByteArray
 
 }
