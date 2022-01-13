@@ -1,5 +1,6 @@
 package com.example.finger
 
+import android.R.attr
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -18,6 +19,12 @@ import androidx.core.content.ContextCompat
 import java.io.ByteArrayOutputStream
 import java.lang.Exception
 import java.util.concurrent.Executor
+import android.R.attr.duration
+
+import android.R.attr.text
+
+import android.widget.Toast
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -65,6 +72,12 @@ class MainActivity : AppCompatActivity() {
                 val data1: Intent? = result.data
                 val uri: Uri? = data1?.data
                 fileByteArray = getBytesFromUri(applicationContext, uri)
+                if (uri != null) {
+                    txtAuth.text =
+                        "Fisierul ales: " + uri.lastPathSegment?.substringAfter(':') ?: ""
+                }
+                findViewById<Button>(R.id.btnEncrypt).visibility = View.VISIBLE
+                findViewById<Button>(R.id.btnDecrypt).visibility = View.VISIBLE
             }
         }
 
@@ -83,6 +96,8 @@ class MainActivity : AppCompatActivity() {
                 outputStream?.close()
                 findViewById<Button>(R.id.btnAlegeFisier).visibility = View.VISIBLE
                 findViewById<Button>(R.id.btnSalveaza).visibility = View.INVISIBLE
+                findViewById<Button>(R.id.btnEncrypt).visibility = View.INVISIBLE
+                findViewById<Button>(R.id.btnDecrypt).visibility = View.INVISIBLE
             }
         }
 
@@ -102,7 +117,7 @@ class MainActivity : AppCompatActivity() {
         }
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         resultLauncherCreate.launch(intent)
-        txtAuth.text = "Buna ziua!"
+        txtAuth.text = "Alegeti un fisier"
     }
 
     private fun getBytesFromUri(context: Context, uri: Uri?): ByteArray? {
@@ -142,7 +157,7 @@ class MainActivity : AppCompatActivity() {
 
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                 super.onAuthenticationSucceeded(result)
-                txtAuth.text = "Autentificare cu succes"
+                txtAuth.text = "Autentificare cu succes\n Salvati fisierul"
                 processData(result.cryptoObject)
             }
         }
@@ -167,9 +182,14 @@ class MainActivity : AppCompatActivity() {
                 .BIOMETRIC_SUCCESS
         ) {
             val cipher = cryptographyManager.getInitializedCipherForEncryption(secretKeyName)
-            biometricPrompt.authenticate(promptInfo, BiometricPrompt.CryptoObject(cipher))
+            try {
+                biometricPrompt.authenticate(promptInfo, BiometricPrompt.CryptoObject(cipher))
+            } catch (e: Exception) {
+                val toast =
+                    Toast.makeText(applicationContext, e.localizedMessage, Toast.LENGTH_LONG)
+                toast.show()
+            }
         }
-
     }
 
     private fun authenticateToDecrypt() {
@@ -186,7 +206,13 @@ class MainActivity : AppCompatActivity() {
                 secretKeyName,
                 iv
             )
-            biometricPrompt.authenticate(promptInfo, BiometricPrompt.CryptoObject(cipher))
+            try {
+                biometricPrompt.authenticate(promptInfo, BiometricPrompt.CryptoObject(cipher))
+            } catch (e: Exception) {
+                val toast =
+                    Toast.makeText(applicationContext, e.localizedMessage, Toast.LENGTH_LONG)
+                toast.show()
+            }
         }
     }
 
@@ -211,5 +237,7 @@ class MainActivity : AppCompatActivity() {
         }
         findViewById<Button>(R.id.btnAlegeFisier).visibility = View.INVISIBLE
         findViewById<Button>(R.id.btnSalveaza).visibility = View.VISIBLE
+        findViewById<Button>(R.id.btnEncrypt).visibility = View.INVISIBLE
+        findViewById<Button>(R.id.btnDecrypt).visibility = View.INVISIBLE
     }
 }
