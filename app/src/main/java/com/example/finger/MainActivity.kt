@@ -42,6 +42,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var initializationVector: ByteArray
     private lateinit var decipherByteArray: ByteArray
     private var fileByteArray: ByteArray? = null
+    private lateinit var savedFileName: String
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,8 +75,9 @@ class MainActivity : AppCompatActivity() {
                 val uri: Uri? = data1?.data
                 fileByteArray = getBytesFromUri(applicationContext, uri)
                 if (uri != null) {
+                    savedFileName = uri.lastPathSegment?.substringAfter(':') ?: ""
                     txtAuth.text =
-                        "Fisierul ales: " + uri.lastPathSegment?.substringAfter(':') ?: ""
+                        "Fisierul ales: $savedFileName"
                 }
                 findViewById<Button>(R.id.btnEncrypt).visibility = View.VISIBLE
                 findViewById<Button>(R.id.btnDecrypt).visibility = View.VISIBLE
@@ -114,7 +116,9 @@ class MainActivity : AppCompatActivity() {
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
         intent.type = "*/*";
         if (readyToEncrypt) {
-            intent.putExtra(Intent.EXTRA_TITLE, "fisierCriptat.bin");
+            intent.putExtra(Intent.EXTRA_TITLE, "$savedFileName.bin");
+        } else {
+            intent.putExtra(Intent.EXTRA_TITLE, savedFileName.substringBefore(".bin"));
         }
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         resultLauncherCreate.launch(intent)
