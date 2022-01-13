@@ -24,6 +24,7 @@ import android.R.attr.duration
 import android.R.attr.text
 
 import android.widget.Toast
+import android.view.Gravity
 
 
 class MainActivity : AppCompatActivity() {
@@ -186,9 +187,18 @@ class MainActivity : AppCompatActivity() {
                 biometricPrompt.authenticate(promptInfo, BiometricPrompt.CryptoObject(cipher))
             } catch (e: Exception) {
                 val toast =
-                    Toast.makeText(applicationContext, e.localizedMessage, Toast.LENGTH_LONG)
+                    Toast.makeText(applicationContext, e.localizedMessage, Toast.LENGTH_SHORT)
                 toast.show()
             }
+        } else {
+            val toast =
+                Toast.makeText(
+                    applicationContext,
+                    "Nu s-a putut initializa autentificarea\n " +
+                            "Verificati daca aveti aceasta optiune activa",
+                    Toast.LENGTH_SHORT
+                )
+            toast.show()
         }
     }
 
@@ -210,9 +220,18 @@ class MainActivity : AppCompatActivity() {
                 biometricPrompt.authenticate(promptInfo, BiometricPrompt.CryptoObject(cipher))
             } catch (e: Exception) {
                 val toast =
-                    Toast.makeText(applicationContext, e.localizedMessage, Toast.LENGTH_LONG)
+                    Toast.makeText(applicationContext, e.localizedMessage, Toast.LENGTH_SHORT)
                 toast.show()
             }
+        } else {
+            val toast =
+                Toast.makeText(
+                    applicationContext,
+                    "Nu s-a putut initializa autentificarea\n" +
+                            "Verificati daca aveti aceasta optiune activa",
+                    Toast.LENGTH_SHORT
+                )
+            toast.show()
         }
     }
 
